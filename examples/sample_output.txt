@@ -1,0 +1,48 @@
+**SOAP Note**
+
+**Subjective:**
+- **Chief Complaint:** The patient reports difficulty with breathing.
+- **Patient Statement:** "Yeah, I have difficulties with my breathing."
+- **Additional Context:** Patient appears to be experiencing respiratory distress. He is observed to be short of breath and fatigued during conversation.
+- **History of Present Illness:** Patient presents with acute-onset dyspnea. No specific duration or triggers mentioned. Patient denies chest pain, fever, or recent illness. No mention of cough, sputum, or wheezing.
+
+**Objective:**
+- **Observations:** Patient appears fatigued and is breathing with visible effort. Speech is labored and interrupted by breathlessness.
+- **Vital Signs:** Not documented in the audio. The provider asks, "Did we check your oxygenation when you came in here?" and the patient replies, "I don't think so."
+- **Physical Exam:** Not performed or documented in the audio clip.
+
+**Assessment:**
+- Acute dyspnea of undetermined etiology.
+- Possible respiratory compromise; oxygen saturation not yet assessed.
+- Differential diagnoses include:
+  - Acute exacerbation of underlying lung disease (e.g., COPD, asthma)
+  - Cardiac etiology (e.g., heart failure, arrhythmia)
+  - Pulmonary embolism
+  - Pneumonia or other acute respiratory infection
+  - Anxiety or panic attack
+- Pending evaluation of oxygenation status and further clinical assessment.
+
+**Plan:**
+- **Immediate Actions:**
+  - Obtain pulse oximetry to assess oxygen saturation.
+  - Perform focused respiratory and cardiovascular examination.
+  - Consider obtaining a 12-lead ECG to rule out acute cardiac causes.
+  - Order basic labs (CBC, BMP, troponin if indicated) and chest X-ray as clinically warranted.
+- **Medications:**
+  - Not prescribed at this time.
+  - Consider oxygen therapy if saturation is <90% on room air.
+- **Lifestyle/Supportive Measures:**
+  - Instruct patient to remain calm and sit upright to ease breathing.
+  - Avoid exertion until further evaluation is complete.
+- **Follow-Up:**
+  - Schedule urgent follow-up with provider or return to clinic within 24 hours if symptoms persist or worsen.
+  - Arrange for diagnostic testing (e.g., CXR, ECG) as soon as possible.
+
+**Action Items:**
+- [ ] Order pulse oximetry.
+- [ ] Perform physical examination (respiratory and cardiovascular).
+- [ ] Order chest X-ray.
+- [ ] Order ECG.
+- [ ] Order basic labs (CBC, BMP, troponin if indicated).
+- [ ] Schedule follow-up appointment within 24 hours.
+- [ ] Document findings and plan in medical record.

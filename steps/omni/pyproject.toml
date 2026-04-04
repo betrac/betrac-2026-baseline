@@ -1,0 +1,28 @@
+[project]
+name = "betrac-omni-baseline"
+version = "0.1.0"
+description = "BeTraC 2026 omni step: direct audio-to-SOAP-note using Qwen Omni models"
+requires-python = ">=3.11,<3.12"
+license = {text = "Apache-2.0"}
+
+dependencies = [
+    "psutil==7.2.2",
+    "numpy==2.4.4",
+    "qwen-omni-utils==0.0.9",
+    "torch==2.11.0",
+    "torchvision==0.26.0",
+    "transformers==4.57.6",
+    "accelerate==1.13.0",
+    "librosa==0.11.0",
+    "numba==0.65.0",
+    "llvmlite==0.47.0",
+    "soundfile==0.13.1",
+    "loguru==0.7.3",
+    "pyyaml==6.0.3",
+    "datasets==4.8.4",
+    "hf-transfer==0.1.9",
+]
+
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"

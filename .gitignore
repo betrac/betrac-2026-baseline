@@ -1,0 +1,87 @@
+# Ignore patterns for git
+
+# Claude Code local settings
+.claude/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Step virtual environments
+steps/*/.venv/
+
+# Testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+.hypothesis/
+
+# Linting and Type Checking
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+dmypy.json
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Output and results (generated, not checked in)
+results/*
+!results/.gitkeep
+logs/
+test_output/
+outputs/
+
+# Data files (large, not in version control)
+*.wav
+*.mp3
+*.mp4
+*.opus
+*.safetensors
+
+# Exception: Allow specific sample files for testing
+!data/audio/sample_001.wav
+
+# Local model downloads
+model/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Package management
+pip-log.txt
+
+# Environment variables
+.env
+.env.local
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
