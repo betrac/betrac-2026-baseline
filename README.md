@@ -1,6 +1,6 @@
 # BeTraC 2026 — End-to-End Omni Baseline
 
-[![Challenge](https://img.shields.io/badge/SLT%202026-Challenge-blue.svg)](CHALLENGE.md)
+[![Challenge](https://img.shields.io/badge/SLT%202026-Challenge-blue.svg)](https://betrac.github.io)
 [![Python 3.11](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/downloads/)
 
 End-to-end audio-to-SOAP-note baseline for the [BeTraC 2026](https://betrac.github.io) challenge (IEEE SLT). Processes raw doctor–patient conversation audio directly into structured clinical SOAP notes using Qwen Omni models — no intermediate transcription.
@@ -34,8 +34,14 @@ BeTraC/betrac-2026       steps/omni/      {id, summary, timing, ...}
 git clone https://github.com/betrac/betrac-2026-baseline.git
 cd betrac-2026-baseline
 make setup          # creates steps/omni/.venv
-make test           # smoke test with local sample audio
+make test           # smoke test with local sample audio (Qwen3-Omni-30B-A3B-Instruct)
 make test-5         # 5 HuggingFace samples (Qwen2.5-Omni-3B)
+```
+
+Example outputs from these commands are included in `results/` for reference:
+```bash
+python3 scripts/show_results.py results/test_omni_output-example.jsonl
+python3 scripts/show_results.py results/test_omni_5-example.jsonl
 ```
 
 ### Run inference
@@ -73,18 +79,20 @@ The `summary` field contains the SOAP note. The `thinking` field is populated fo
 
 ## Verified Models
 
-| Model | HuggingFace ID | Track | Device | Time/sample |
-|-------|---------------|-------|--------|-------------|
-| Qwen2.5-Omni-3B | `Qwen/Qwen2.5-Omni-3B` | Lightweight | MPS | ~70–120s |
-| Qwen2.5-Omni-7B | `Qwen/Qwen2.5-Omni-7B` | Heavyweight | CPU | ~160s |
-| Qwen3-Omni-30B | `Qwen/Qwen3-Omni-30B-A3B-Instruct` | Heavyweight | MPS | ~260–360s |
-| Qwen3-Omni-30B Thinking | `Qwen/Qwen3-Omni-30B-A3B-Thinking` | Heavyweight | MPS | ~450–570s |
+| Model | HuggingFace ID | Track | MPS | CUDA (A100) |
+|-------|---------------|-------|-----|-------------|
+| Qwen2.5-Omni-3B | `Qwen/Qwen2.5-Omni-3B` | Lightweight | ~70–120s | ~45s |
+| Qwen2.5-Omni-7B | `Qwen/Qwen2.5-Omni-7B` | Heavyweight | ~160s (CPU) | ~90s |
+| Qwen3-Omni-30B | `Qwen/Qwen3-Omni-30B-A3B-Instruct` | Heavyweight | ~260–360s | ~414s* |
+| Qwen3-Omni-30B Thinking | `Qwen/Qwen3-Omni-30B-A3B-Thinking` | Heavyweight | ~450–570s | ~1275s* |
 
-All tested on Apple Silicon with torch 2.11.0 and transformers 4.57.6. Model family and device are auto-detected. On CUDA, `device_map="auto"` handles GPU placement.
+MPS tested on Apple Silicon, CUDA on A100-PCIE-40GB (1 GPU + CPU offload for 30B models). Model family and device are auto-detected. *30B CUDA times are median across 400 validation samples — individual samples range from 3–50 min.
 
 ---
 
 ## SLURM Cluster Usage
+
+**Generic scripts** (any SLURM cluster, manifest-based):
 
 ```bash
 # Submit array job (auto-splits manifest across tasks)
@@ -93,12 +101,30 @@ bash scripts/submit_slurm.sh
 # Custom model + cluster options
 MODEL_ID=Qwen/Qwen2.5-Omni-3B MODEL_SHORT=qwen25-3b \
   bash scripts/submit_slurm.sh --account=MY_ACCOUNT --partition=gpu
-
-# Local run without SLURM
-bash scripts/run_local.sh
 ```
 
 Edit [scripts/run_omni.slurm](scripts/run_omni.slurm) to adjust `--gpus-per-task`, `--mem`, `--time` and uncomment `module load` lines for your cluster.
+
+**Pre-configured experiment directories** (HuggingFace dataset mode):
+
+The `experiments/` directory contains ready-to-run SLURM scripts for each model.
+See [experiments/SLURM_SETUP.md](experiments/SLURM_SETUP.md) for adapting them
+to your cluster.
+
+```bash
+cd experiments/Exp0001-qwen25-3b/
+TOTAL=400 bash slurm/submit_omni.sh   # submits array + combine jobs
+```
+
+**Local run** (no SLURM):
+
+```bash
+bash scripts/run_local.sh             # generic
+bash experiments/Exp0001-qwen25-3b/run_local.sh  # experiment-specific
+```
+
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues (HF rate limits,
+GPU memory, NFS errors).
 
 ---
 
@@ -180,7 +206,8 @@ betrac-2026-baseline/
 │   ├── merge_results.py     # Merge JSONL from parallel jobs
 │   └── show_results.py      # Pretty-print results
 ├── tests/                   # Test suite
-├── examples/                # Example output
+├── results/                 # Output (includes *-example.jsonl for reference)
+├── examples/                # Example SOAP note and JSONL format
 ├── Makefile                 # Build and run automation
 └── pyproject.toml           # Project metadata
 ```

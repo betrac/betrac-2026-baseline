@@ -47,9 +47,20 @@ dmypy.json
 # Output and results (generated, not checked in)
 results/*
 !results/.gitkeep
+!results/*-example.jsonl
 logs/
 test_output/
 outputs/
+
+# Experiment results and logs
+experiments/*/results/*
+!experiments/*/results/.gitkeep
+!experiments/*/results/validation/
+experiments/*/results/validation/*/summaries_task_*.jsonl
+experiments/*/slurm/logs-slurm/*
+!experiments/*/slurm/logs-slurm/.gitkeep
+experiments/*/logs-local/*
+!experiments/*/logs-local/.gitkeep
 
 # Data files (large, not in version control)
 *.wav
@@ -85,3 +96,4 @@ pip-log.txt
 .AppleDouble
 .LSOverride
 ._*
+CLAUDE.md

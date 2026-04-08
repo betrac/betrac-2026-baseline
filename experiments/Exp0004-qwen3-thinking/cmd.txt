@@ -1,0 +1,31 @@
+# Exp0004 — Qwen3-Omni-30B-A3B-Thinking command examples
+# Run all commands from: experiments/Exp0004-qwen3-thinking/
+
+# --- SLURM submission (validation, 400 samples) ---
+TOTAL=400 bash slurm/submit_omni.sh
+
+# --- SLURM submission (train, 7200 samples) ---
+SPLIT=train TOTAL=7200 bash slurm/submit_omni.sh
+
+# --- Override samples per task ---
+TOTAL=400 SAMPLES_PER_TASK=10 bash slurm/submit_omni.sh
+
+# --- Override walltime ---
+TOTAL=400 bash slurm/submit_omni.sh --time=03:00:00
+
+# --- Enable Flash Attention 2 (A100 GPUs) ---
+TOTAL=400 FLASH_ATTN=1 bash slurm/submit_omni.sh
+
+# --- Disable thinking mode (run as instruct) ---
+TOTAL=400 THINKING=0 bash slurm/submit_omni.sh
+
+# --- Single task test ---
+sbatch --array=0 \
+  --export=ALL,MODEL_ID="Qwen/Qwen3-Omni-30B-A3B-Thinking",MODEL_SHORT="qwen3-omni-30b-thinking",DATASET="BeTraC/betrac-2026",SPLIT="validation",FLASH_ATTN=0,THINKING=1,SAMPLES_PER_TASK=4 \
+  slurm/run_omni_hf.slurm
+
+# --- Local run ---
+bash run_local.sh
+
+# --- Local run (first 5 samples) ---
+LIMIT=5 bash run_local.sh

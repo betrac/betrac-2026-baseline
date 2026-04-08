@@ -92,8 +92,8 @@ MODEL_CONFIGS: dict[str, dict] = {
     "qwen3-omni-30b-a3b-thinking": {
         "family": "qwen3-omni-moe",
         "device_map": "auto",
-        "max_new_tokens": 32768,
-        "thinker_max_new_tokens": 32768,
+        "max_new_tokens": 8192,
+        "thinker_max_new_tokens": 8192,
     },
 }
 
@@ -214,7 +214,7 @@ def load_completed_ids(output_path: str) -> set[str]:
 
 
 def load_hf_samples(
-    dataset_name: str, split: str, limit: int | None = None
+    dataset_name: str, split: str, offset: int = 0, limit: int | None = None
 ) -> list[dict]:
     """Load samples from a HuggingFace WebDataset.
 
@@ -225,7 +225,9 @@ def load_hf_samples(
     ds = load_dataset(dataset_name, split=split, streaming=True)
     samples = []
     for i, item in enumerate(ds):
-        if limit is not None and i >= limit:
+        if i < offset:
+            continue
+        if limit is not None and (i - offset) >= limit:
             break
 
         # Extract sample ID from the JSON metadata field.
@@ -604,8 +606,12 @@ def process_audio_subprocess(
     (success: bool, summary: str, elapsed_sec: float, error: str, thinking: str)
     """
     try:
-        # Only restrict CUDA devices when explicit GPU IDs given
-        if device not in ("auto", "cuda", "cpu", "mps"):
+        # Restrict subprocess to a single GPU so device_map="auto" offloads
+        # excess layers to CPU instead of filling all GPUs (which causes OOM
+        # on 30B models with 2x40GB GPUs).
+        if device in ("cuda", "auto"):
+            os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+        elif device not in ("cpu", "mps"):
             os.environ["CUDA_VISIBLE_DEVICES"] = device
         if device == "mps":
             # Prevent MPS from silently consuming unlimited memory via disk swap.
@@ -686,6 +692,12 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=None,
         help="Process only the first N samples (useful for testing)",
+    )
+    parser.add_argument(
+        "--offset",
+        type=int,
+        default=0,
+        help="Skip the first N samples (for array job partitioning)",
     )
     parser.add_argument(
         "--manifest",
@@ -924,7 +936,7 @@ def main() -> int:
     # Load samples from HuggingFace or CSV manifest
     use_hf = args.manifest is None
     if use_hf:
-        hf_samples = load_hf_samples(args.dataset, args.split, limit=args.limit)
+        hf_samples = load_hf_samples(args.dataset, args.split, offset=args.offset, limit=args.limit)
         logger.info(
             "Loaded {} samples from {} [{}]",
             len(hf_samples), args.dataset, args.split,
