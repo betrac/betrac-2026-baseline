@@ -26,3 +26,25 @@ bash run_local.sh
 
 # --- Local run (first 5 samples) ---
 LIMIT=5 bash run_local.sh
+
+# --- Eval set (requires access grant — see README.md) ---
+
+# Pre-cache eval dataset on login node (needs HF_TOKEN with access)
+../../steps/omni/.venv/bin/python -c "
+from datasets import load_dataset
+from huggingface_hub import snapshot_download
+load_dataset('BeTraC/betrac-2026-eval', split='eval')
+snapshot_download('Qwen/Qwen2.5-Omni-3B')
+"
+
+# Single task test
+sbatch --array=0 \
+  --export=ALL,MODEL_ID="Qwen/Qwen2.5-Omni-3B",MODEL_SHORT="qwen25-omni-3b",DATASET="BeTraC/betrac-2026-eval",SPLIT="eval",FLASH_ATTN=0,SAMPLES_PER_TASK=4 \
+  slurm/run_omni_hf.slurm
+
+# Full eval submission (875 samples)
+DATASET=BeTraC/betrac-2026-eval SPLIT=eval TOTAL=875 SAMPLES_PER_TASK=20 SKIP_CACHE=1 \
+  bash slurm/submit_omni.sh
+
+# Local eval run
+DATASET=BeTraC/betrac-2026-eval SPLIT=eval bash run_local.sh

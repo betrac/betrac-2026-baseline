@@ -57,6 +57,28 @@ make run SPLIT=validation MODEL=Qwen/Qwen2.5-Omni-3B LIMIT=20
 make run-manifest MANIFEST=data/manifests/my_data.csv
 ```
 
+### Eval set
+
+The eval dataset (`BeTraC/betrac-2026-eval`) will be released on **July 24, 2026**
+to registered teams. Once your team has been granted access, export your
+HuggingFace token and run:
+
+```bash
+export HF_TOKEN=hf_your_token_here   # or add to ~/.bashrc
+
+# Local
+make run DATASET=BeTraC/betrac-2026-eval SPLIT=eval MODEL=Qwen/Qwen2.5-Omni-3B
+
+# SLURM cluster (see experiments/Exp0001-qwen25-3b/ and experiments/SLURM_SETUP.md)
+cd experiments/Exp0001-qwen25-3b
+DATASET=BeTraC/betrac-2026-eval SPLIT=eval TOTAL=875 SAMPLES_PER_TASK=20 \
+  bash slurm/submit_omni.sh
+```
+
+`TOTAL=875` skips the slow sample auto-count; omit it to auto-detect.
+The submit script pre-caches the dataset and model weights on the login node
+before submitting jobs. Set `SKIP_CACHE=1` to skip if already cached.
+
 ### Output
 
 Each sample produces a JSONL record:
