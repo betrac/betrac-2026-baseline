@@ -14,6 +14,8 @@ set -euo pipefail
 # ---------------------------------------------------------------------------
 MODEL_ID="${MODEL_ID:-Qwen/Qwen3-Omni-30B-A3B-Instruct}"
 FLASH_ATTN="${FLASH_ATTN:-0}"
+MAX_AUDIO_SECONDS="${MAX_AUDIO_SECONDS:-}"   # blank = derive from model context
+NUM_GPUS="${NUM_GPUS:-1}"                     # >1 shards the model across GPUs
 THINKING="${THINKING:-0}"
 
 # Derive MODEL_SHORT from MODEL_ID if not set
@@ -59,6 +61,7 @@ echo "Started at:       $(date)"
 echo "Baseline:         ${BASELINE_DIR}"
 echo "Model ID:         ${MODEL_ID}"
 echo "Flash Attn2:      ${FLASH_ATTN}"
+echo "Max audio sec:    ${MAX_AUDIO_SECONDS:-auto (from model context)}"
 echo "Thinking:         ${THINKING}"
 echo "Output:           ${OUTPUT_JSONL}"
 echo "=========================================="
@@ -93,6 +96,16 @@ if [ -n "${MANIFEST}" ]; then
 else
     OMNI_ARGS+=(--dataset BeTraC/betrac-2026 --split validation)
     echo "Data source: HuggingFace BeTraC/betrac-2026 [validation]"
+fi
+
+if [ "${NUM_GPUS}" != "1" ]; then
+    OMNI_ARGS+=(--num-gpus "${NUM_GPUS}")
+    echo "GPUs per model: ${NUM_GPUS}"
+fi
+
+if [ -n "${MAX_AUDIO_SECONDS}" ]; then
+    OMNI_ARGS+=(--max-audio-seconds "${MAX_AUDIO_SECONDS}")
+    echo "Max audio seconds: ${MAX_AUDIO_SECONDS}"
 fi
 
 if [ "${FLASH_ATTN}" = "1" ]; then

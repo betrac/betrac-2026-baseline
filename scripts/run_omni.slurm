@@ -22,6 +22,8 @@
 #   MANIFEST          Path to CSV manifest file
 #   SAMPLES_PER_TASK  Audio files per array task (default: 4)
 #   FLASH_ATTN        Enable Flash Attention 2 (default: 0)
+#   MAX_AUDIO_SECONDS Cap audio length in seconds (default: from model context)
+#   NUM_GPUS          GPUs to shard across (default: 1; experimental — see README)
 #   THINKING          Enable thinking mode (default: 0)
 #
 # Adapt for your cluster:
@@ -35,6 +37,8 @@
 MODEL_ID="${MODEL_ID:-Qwen/Qwen3-Omni-30B-A3B-Instruct}"
 MODEL_SHORT="${MODEL_SHORT:-qwen3-omni-30b-instruct}"
 FLASH_ATTN="${FLASH_ATTN:-0}"
+MAX_AUDIO_SECONDS="${MAX_AUDIO_SECONDS:-}"   # blank = derive from model context
+NUM_GPUS="${NUM_GPUS:-1}"                     # >1 shards the model across GPUs
 THINKING="${THINKING:-0}"
 SAMPLES_PER_TASK="${SAMPLES_PER_TASK:-4}"
 TASK_ID="${SLURM_ARRAY_TASK_ID:-0}"
@@ -68,6 +72,7 @@ echo "Baseline:         ${BASELINE_DIR}"
 echo "Model ID:         ${MODEL_ID}"
 echo "Manifest:         ${MANIFEST}"
 echo "Flash Attn2:      ${FLASH_ATTN}"
+echo "Max audio sec:    ${MAX_AUDIO_SECONDS:-auto (from model context)}"
 echo "Thinking:         ${THINKING}"
 echo "Samples per task: ${SAMPLES_PER_TASK}"
 echo "Task output:      ${TASK_JSONL}"
@@ -142,6 +147,16 @@ OMNI_ARGS=(
     --base-dir "${BASELINE_DIR}"
     --resume
 )
+
+if [ "${NUM_GPUS}" != "1" ]; then
+    OMNI_ARGS+=(--num-gpus "${NUM_GPUS}")
+    echo "GPUs per model: ${NUM_GPUS}"
+fi
+
+if [ -n "${MAX_AUDIO_SECONDS}" ]; then
+    OMNI_ARGS+=(--max-audio-seconds "${MAX_AUDIO_SECONDS}")
+    echo "Max audio seconds: ${MAX_AUDIO_SECONDS}"
+fi
 
 if [ "${FLASH_ATTN}" = "1" ]; then
     OMNI_ARGS+=(--use-flash-attn2)

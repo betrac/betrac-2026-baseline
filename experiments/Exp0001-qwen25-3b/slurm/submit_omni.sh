@@ -17,6 +17,8 @@
 #   SPLIT             Dataset split                  (default: validation)
 #   TOTAL             Total sample count (skip HF count) (default: auto-detect)
 #   FLASH_ATTN        Enable Flash Attention 2       (default: 0)
+#   MAX_AUDIO_SECONDS Cap audio length (seconds)     (default: from model context)
+#   NUM_GPUS          GPUs to shard across (default: 1; experimental — see README)
 #   SAMPLES_PER_TASK  Samples per array task         (default: 4)
 #
 # All positional arguments are forwarded to the array job sbatch call.
@@ -31,6 +33,8 @@ MODEL_SHORT="${MODEL_SHORT:-qwen25-omni-3b}"
 DATASET="${DATASET:-BeTraC/betrac-2026}"
 SPLIT="${SPLIT:-validation}"
 FLASH_ATTN="${FLASH_ATTN:-0}"
+MAX_AUDIO_SECONDS="${MAX_AUDIO_SECONDS:-}"   # blank = derive from model context
+NUM_GPUS="${NUM_GPUS:-1}"
 SAMPLES_PER_TASK="${SAMPLES_PER_TASK:-4}"
 
 # ---------------------------------------------------------------------------
@@ -110,6 +114,7 @@ echo "Array tasks:      0-${MAX_TASK}  (${NUM_TASKS} tasks)"
 echo "Model ID:         ${MODEL_ID}"
 echo "Model short:      ${MODEL_SHORT}"
 echo "Flash Attn2:      ${FLASH_ATTN}"
+echo "Max audio sec:    ${MAX_AUDIO_SECONDS:-auto (from model context)}"
 echo "Extra args:       $*"
 echo ""
 
@@ -119,6 +124,8 @@ echo ""
 ARRAY_EXPORT="ALL,MODEL_ID=${MODEL_ID},MODEL_SHORT=${MODEL_SHORT}"
 ARRAY_EXPORT+=",DATASET=${DATASET},SPLIT=${SPLIT}"
 ARRAY_EXPORT+=",FLASH_ATTN=${FLASH_ATTN},SAMPLES_PER_TASK=${SAMPLES_PER_TASK}"
+ARRAY_EXPORT+=",MAX_AUDIO_SECONDS=${MAX_AUDIO_SECONDS}"
+ARRAY_EXPORT+=",NUM_GPUS=${NUM_GPUS}"
 
 ARRAY_OUTPUT=$(sbatch \
     --array=0-${MAX_TASK} \
