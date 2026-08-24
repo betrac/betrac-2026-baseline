@@ -7,6 +7,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Audio was silently truncated before reaching the model.** Both Omni processor
+  families frame audio with a `WhisperFeatureExtractor` whose `__call__` defaults
+  to `truncation=True` with `max_length = chunk_length * sampling_rate`.
+  `chunk_length` is read from each checkpoint's `preprocessor_config.json`, so the
+  baseline was only ever hearing the first:
+  - **300 s** for `Qwen2.5-Omni-3B` / `-7B` (`chunk_length: 300`)
+  - **30 s** for `Qwen3-Omni-30B-A3B-Instruct` / `-Thinking` (`chunk_length` absent →
+    Whisper's default of 30)
+
+  On the BeTraC validation split (400 dialogs, mean 530 s, max 1474 s) that meant
+  **55.9 %** of the audio reached the Qwen2.5 models and only **5.7 %** reached the
+  Qwen3 models. `run_omni.py` now passes `truncation=False` to the processor.
+  Verify on any checkpoint with `python scripts/check_audio_truncation.py`.
+
+### Fixed (also)
+- **Qwen2.5 output was silently capped at 1024 tokens.** The model's `generate()`
+  wrapper declares its own `thinker_max_new_tokens=1024` and discards a plain
+  `max_new_tokens=`; the repo's 4096 never arrived. Now passed as
+  `thinker_max_new_tokens`. Measured metric impact of this fix alone: none
+  (see experiments/RESULTS.md) — the score gains are the audio fix.
+- **Thinking-budget overflow emitted raw chain-of-thought as the SOAP note.**
+  Reasoning grows with audio heard; 8192 tokens overflowed mid-`<think>` on
+  full recordings with `success: true`. Budget raised to 16384 and an unclosed
+  `<think>` now fails the sample instead of poisoning the results.
+- **`write_audio_tempfile` could silently truncate audio on a full filesystem**
+  (bare `os.write` short-writes instead of raising). Now buffered and
+  size-verified.
+- **Completed generations of near-empty noise are no longer `success: true`**
+  (observed from a misconfigured sharded run); summaries under 25 words are
+  recorded as failures.
+
+### Changed
+- `--resume` no longer treats records from before the audio fix (no
+  `audio_sec` field) or failed records as complete — they are re-processed.
+  Previously, pulling this fix and re-running with `--resume` was a silent
+  no-op that left truncated notes in place.
+- OOM handling: a CUDA out-of-memory on a sample now retries in a fresh
+  subprocess with progressively shorter audio (60 %, then 35 %, floored at
+  300 s) instead of scoring zero.
+
+### Added
+- `--num-gpus N` (env `NUM_GPUS`): shard the model across N GPUs with explicit
+  per-device memory caps. **Experimental** — 2×40 GB for the 30B is marginal
+  (observed hangs and one corrupted output); a single ≥80 GB card is the
+  reliable configuration. See README "Audio length".
+- `scripts/paired_bootstrap.py` — the significance test behind
+  experiments/RESULTS.md.
+- `--max-audio-seconds` (env `MAX_AUDIO_SECONDS` in every runner script) bounds the
+  audio length explicitly. The default is derived from the thinker context window
+  rather than hidden in a preprocessor config: ~1126 s for Qwen2.5-Omni (32 k ctx,
+  25 audio tokens/s) and ~4372 s for Qwen3-Omni (64 k ctx, 13 audio tokens/s).
+  Pass a negative value for no cap. Audio is cut at load time via
+  `qwen_omni_utils`' `audio_end`, and anything dropped is logged as a warning.
+- `context_length` and `audio_tokens_per_second` in `MODEL_CONFIGS`, used to
+  compute the cap above.
+- `scripts/check_audio_truncation.py` — reproduces the bug and verifies the fix
+  against the real processors. Downloads processor files only, no model weights.
+- Output records now carry `audio_sec` and `audio_used_sec`, so a truncation
+  regression is visible in the results themselves rather than only in logs.
+
 ## [0.1.0] - 2026-04-04
 
 ### Added

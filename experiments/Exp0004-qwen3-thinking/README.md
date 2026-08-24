@@ -14,6 +14,23 @@ Heavyweight-track baseline using the thinking variant of Qwen3-Omni MoE. Generat
 | Walltime/task | 2 hours (4 samples/task) |
 | Extra flags | `--thinking` |
 
+## Audio length
+
+This checkpoint's `preprocessor_config.json` made the `WhisperFeatureExtractor`
+silently truncate audio at **30 s** (Qwen3-Omni-MoE family). `run_omni.py` now passes
+`truncation=False`, so the whole recording reaches the model, bounded instead by
+`--max-audio-seconds` — **3742 s (62m 22s)** by default here, derived from the thinker
+context window.
+
+Pre-fix results are kept for comparison under `results-truncated-bug/`.
+See the repository [README](../../README.md#audio-length) and
+`scripts/check_audio_truncation.py`.
+
+```bash
+# Shorter cap (faster, less context)
+TOTAL=400 MAX_AUDIO_SECONDS=600 bash slurm/submit_omni.sh
+```
+
 ## Quick start
 
 ```bash
@@ -37,7 +54,7 @@ LIMIT=5 bash run_local.sh
 - Thinking mode is enabled by default (`THINKING=1`). The model auto-detects thinking mode from the model name, but the `--thinking` flag is set explicitly for clarity.
 - Output JSONL includes a `thinking` field with the chain-of-thought content.
 - Inference is ~3x slower than the Instruct variant due to chain-of-thought generation (median ~21 min vs ~7 min per sample). Some samples can take 40+ min.
-- `thinker_max_new_tokens` is set to 8192 (observed max thinking output: ~4,600 tokens).
+- `thinker_max_new_tokens` is set to 16384. It was 8192, which sufficed only while audio was cut at 30 s — reasoning length scales with how much consultation the model hears, and on full recordings 8192 overflowed mid-`<think>`, leaving raw chain-of-thought where the SOAP note should be.
 
 ## Output
 

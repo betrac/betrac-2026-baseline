@@ -57,6 +57,11 @@ experiments/*/results/*
 !experiments/*/results/.gitkeep
 !experiments/*/results/validation/
 experiments/*/results/validation/*/summaries_task_*.jsonl
+
+# Archived pre-fix / intermediate runs kept for the audio-truncation comparison.
+# Keep only the combined summaries.jsonl, never the per-task intermediates.
+experiments/*/results-truncated-bug/*/*/summaries_task_*.jsonl
+experiments/*/results-audiofix-only/*/*/summaries_task_*.jsonl
 experiments/*/slurm/logs-slurm/*
 !experiments/*/slurm/logs-slurm/.gitkeep
 experiments/*/logs-local/*
@@ -97,3 +102,4 @@ pip-log.txt
 .LSOverride
 ._*
 CLAUDE.md
+

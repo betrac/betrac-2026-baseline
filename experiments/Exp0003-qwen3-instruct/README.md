@@ -13,6 +13,23 @@ Heavyweight-track baseline using the default MoE Qwen3-Omni model (30B total, ~3
 | Time/sample | ~7 min (median on A100-40GB) |
 | Walltime/task | 1.5 hours (4 samples/task) |
 
+## Audio length
+
+This checkpoint's `preprocessor_config.json` made the `WhisperFeatureExtractor`
+silently truncate audio at **30 s** (Qwen3-Omni-MoE family). `run_omni.py` now passes
+`truncation=False`, so the whole recording reaches the model, bounded instead by
+`--max-audio-seconds` — **4372 s (72m 52s)** by default here, derived from the thinker
+context window.
+
+Pre-fix results are kept for comparison under `results-truncated-bug/`.
+See the repository [README](../../README.md#audio-length) and
+`scripts/check_audio_truncation.py`.
+
+```bash
+# Shorter cap (faster, less context)
+TOTAL=400 MAX_AUDIO_SECONDS=600 bash slurm/submit_omni.sh
+```
+
 ## Quick start
 
 ```bash
